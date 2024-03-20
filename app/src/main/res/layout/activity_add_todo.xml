@@ -46,4 +46,14 @@
         app:layout_constraintStart_toStartOf="@+id/editTextTitle"
         app:srcCompat="?android:attr/actionModeCloseDrawable" />
 
+    <TextView
+        android:id="@+id/characterCountTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="8dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/editTextTitle"
+        app:layout_constraintStart_toStartOf="@+id/editTextTitle" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
