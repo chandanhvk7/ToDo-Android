@@ -1,9 +1,7 @@
 package com.redbus.todo.domain.repository
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import com.redbus.todo.data.TodoDao
-import com.redbus.todo.di.DBContainer
 import com.redbus.todo.domain.model.TodoItem
 
 //object RepositoryContainer {
@@ -37,7 +35,7 @@ class TodoRepository private constructor(private val todoDao: TodoDao) : Reposit
         todoDao.update(todo.id, todo.title, todo.isDone)
     }
 
-    override fun loadSingle(id:String): TodoItem {
+    override fun loadSingle(id: Int): TodoItem? {
         return todoDao.loadSingle(id)
     }
 

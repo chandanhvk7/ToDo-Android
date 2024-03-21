@@ -20,7 +20,7 @@ interface TodoDao {
     fun getAllTodos(): LiveData<List<TodoItem>>
 
     @Query("SELECT * FROM todo_items WHERE id=:id ")
-    fun loadSingle(id: String): TodoItem
+    fun loadSingle(id: Int): TodoItem?
 
     @Query("UPDATE todo_items set title = :title,isDone= :isDone where id = :id")
     suspend fun update(id: Int?, title: String?,isDone:Boolean?)

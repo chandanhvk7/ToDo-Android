@@ -15,7 +15,7 @@ class DBContainer {
                     context.applicationContext,
                     TodoDatabase::class.java,
                     TodoDatabase.DATABASE_NAME
-                ).build()
+                ).allowMainThreadQueries().build()
                 INSTANCE = instance
                 instance
             }

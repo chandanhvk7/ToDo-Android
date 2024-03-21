@@ -74,15 +74,15 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: TodoViewModel
-    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data?.getSerializableExtra("todo") as? TodoItem
-            if (data != null) {
-                viewModel.insert(data)
-            }
-//            data?.getStringExtra("MESSAGE")?.let { Log.d("Message", it) }
-        }
-    }
+//    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+//        if (result.resultCode == Activity.RESULT_OK) {
+//            val data = result.data?.getSerializableExtra("todo") as? TodoItem
+//            if (data != null) {
+//                viewModel.insert(data)
+//            }
+////            data?.getStringExtra("MESSAGE")?.let { Log.d("Message", it) }
+//        }
+//    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     viewModel = ViewModelProvider(
                         owner,
 StdVMFactory(LocalContext.current.applicationContext as Application, DBInjector.dbContainer)                    )[TodoViewModel::class.java]
-                    TodoListScreen(todoViewModel = viewModel,this,resultLauncher)
+                    TodoListScreen(todoViewModel = viewModel,this)
                 }
             }
         }
@@ -128,7 +128,7 @@ fun MyCustomAppBar(title: String) {
     ExperimentalUnitApi::class
 )
 @Composable
-fun TodoListScreen(todoViewModel: TodoViewModel,context: Context,resultLauncher: ActivityResultLauncher<Intent>) {
+fun TodoListScreen(todoViewModel: TodoViewModel,context: Context) {
     val todoItems by todoViewModel.allTodo.observeAsState(emptyList())
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -160,7 +160,7 @@ fun TodoListScreen(todoViewModel: TodoViewModel,context: Context,resultLauncher:
                 onClick = {
                     // Navigate to AddTodoScreen
                     val intent = Intent(context, AddTodoActivity::class.java)
-                    resultLauncher.launch(intent)
+                    context.startActivity(intent)
                 }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Todo")
@@ -231,8 +231,8 @@ fun TodoListScreen(todoViewModel: TodoViewModel,context: Context,resultLauncher:
                                 ) {
                                     TodoItemRow(todoItem = todoItem, todoViewModel, onItemClick = {
                                         val intent = Intent(context, AddTodoActivity::class.java)
-                                        intent.putExtra("todo", todoItem)
-                                        resultLauncher.launch(intent)
+                                        intent.putExtra("todo", todoItem.id)
+                                        context.startActivity(intent)
                                     }, onDeleteClick = {
                                         val deletedItem = it
                                         todoViewModel.delete(it)

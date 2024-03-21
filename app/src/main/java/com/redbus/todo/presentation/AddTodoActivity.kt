@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -22,8 +23,10 @@ import com.redbus.todo.di.DBInjector
 import com.redbus.todo.domain.model.TodoItem
 import com.redbus.todo.viewmodel.AddViewmodel
 import com.redbus.todo.viewmodel.StdAddVMFactory
-import com.redbus.todo.viewmodel.StdVMFactory
-import com.redbus.todo.viewmodel.TodoViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class AddTodoActivity : AppCompatActivity() {
@@ -37,6 +40,7 @@ class AddTodoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_add_todo)
+
         editTitle=findViewById(R.id.editTextTitle)
         characterCountTextView = findViewById(R.id.characterCountTextView)
         buttonAddTodo = findViewById(R.id.buttonAddTodo)
@@ -44,12 +48,15 @@ class AddTodoActivity : AppCompatActivity() {
                 viewModel = ViewModelProvider(
                     this,
                     StdAddVMFactory(this.applicationContext as Application, DBInjector.dbContainer)                    )[AddViewmodel::class.java]
-        if (intent.hasExtra("todo")) {
-            todoItemToEdit = intent.getSerializableExtra("todo") as? TodoItem
-            todoItemToEdit?.let {
-                // Populate UI with todo item details for editing
-                editTitle.setText(it.title)
-                viewModel.updateCharacterCount(it.title)
+                val id = intent.getIntExtra("todo",-1)
+        if (id!=-1) {
+                todoItemToEdit = viewModel.getById(id)
+                todoItemToEdit?.let {
+                    // Populate UI with todo item details for editing
+
+                        editTitle.setText(it.title)
+                        viewModel.updateCharacterCount(it.title)
+
             }
         }
         editTitle.addTextChangedListener(object : TextWatcher {
@@ -80,16 +87,14 @@ class AddTodoActivity : AppCompatActivity() {
             val title = editTitle.text.toString()
 
             if (title.isNotEmpty()) {
-                if (todoItemToEdit != null) {
-                    // Update existing todo item
-                    val intent = Intent()
-                    intent.putExtra("todo", todoItemToEdit?.copy(title = title))
-                    setResult(Activity.RESULT_OK, intent)
-                } else {
+                if(id!=-1) {
+                    if (todoItemToEdit != null) {
+                        // Update existing todo item
+                        viewModel.update(todoItemToEdit!!.copy(title = title))
+                    }
+                }else {
                     // Add new todo item
-                    val intent = Intent()
-                    intent.putExtra("todo", TodoItem(title = title))
-                    setResult(Activity.RESULT_OK, intent)
+                    viewModel.insert(TodoItem(title=title))
                 }
 
                 // Finish activity

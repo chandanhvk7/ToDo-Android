@@ -1,7 +1,6 @@
 package com.redbus.todo.domain.repository
 
 import androidx.lifecycle.LiveData
-import com.redbus.todo.data.TodoDao
 import com.redbus.todo.domain.model.TodoItem
 
 //class TodoRepository(private val todoDao: TodoDao) {
@@ -23,5 +22,5 @@ interface Repository {
     suspend fun insert(todoItem: TodoItem)
     suspend fun delete(todo: TodoItem)
     suspend fun update(todo: TodoItem)
-    fun loadSingle(id:String):TodoItem
+     fun loadSingle(id: Int):TodoItem?
 }

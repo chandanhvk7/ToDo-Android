@@ -8,12 +8,14 @@ import androidx.lifecycle.viewModelScope
 import com.redbus.todo.di.DBContainer
 import com.redbus.todo.domain.model.TodoItem
 import com.redbus.todo.domain.repository.TodoRepository
+import com.redbus.todo.domain.usecases.AddTodoUseCase
 import com.redbus.todo.domain.usecases.DeleteTodoUseCase
 import com.redbus.todo.domain.usecases.GetAllTodosUseCase
 import com.redbus.todo.domain.usecases.GetByIdUseCase
+import com.redbus.todo.domain.usecases.UpdateTodoUseCase
 import kotlinx.coroutines.launch
 
-class TodoViewModel(private val repository: TodoRepository,getall: GetAllTodosUseCase, val deleteTodoUseCase: DeleteTodoUseCase) : ViewModel() {
+class TodoViewModel(getall: GetAllTodosUseCase, val addTodoUseCase: AddTodoUseCase,val deleteTodoUseCase: DeleteTodoUseCase,val updateTodoUseCase: UpdateTodoUseCase) : ViewModel() {
 
     val allTodo : LiveData<List<TodoItem>>
 
@@ -24,13 +26,13 @@ class TodoViewModel(private val repository: TodoRepository,getall: GetAllTodosUs
     }
     fun insert(todoItem: TodoItem) {
         viewModelScope.launch {
-            repository.insert(todoItem)
+            addTodoUseCase.execute(todoItem)
         }
     }
 
     fun update(todoItem: TodoItem) {
         viewModelScope.launch {
-            repository.update(todoItem)
+            updateTodoUseCase.execute(todoItem)
         }
     }
     fun delete(todoItem: TodoItem) {
@@ -49,6 +51,8 @@ class StdVMFactory(val app: Application, val dbContainer: DBContainer): ViewMode
         val repository = dbContainer.provideTodoRepository(db)
         val getall=GetAllTodosUseCase(repository)
         val deleteTodoUseCase=DeleteTodoUseCase(repository)
-        return TodoViewModel(repository,getall,deleteTodoUseCase) as T
+        val updateTodoUseCase=UpdateTodoUseCase(repository)
+        val addTodoUseCase=AddTodoUseCase(repository)
+        return TodoViewModel(getall,addTodoUseCase,deleteTodoUseCase,updateTodoUseCase) as T
     }
 }
