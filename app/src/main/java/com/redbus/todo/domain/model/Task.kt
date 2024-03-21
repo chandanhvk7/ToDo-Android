@@ -1,4 +1,4 @@
-package com.redbus.todo.model
+package com.redbus.todo.domain.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

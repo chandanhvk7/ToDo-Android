@@ -1,6 +1,7 @@
-package com.redbus.todo
+package com.redbus.todo.presentation
 
 import android.app.Activity
+import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -9,15 +10,20 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Observer
-import androidx.room.InvalidationTracker
-import androidx.room.InvalidationTracker.*
-import com.redbus.todo.model.TodoItem
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import com.redbus.todo.R
+import com.redbus.todo.di.DBInjector
+import com.redbus.todo.domain.model.TodoItem
 import com.redbus.todo.viewmodel.AddViewmodel
+import com.redbus.todo.viewmodel.StdAddVMFactory
+import com.redbus.todo.viewmodel.StdVMFactory
+import com.redbus.todo.viewmodel.TodoViewModel
 
 
 class AddTodoActivity : AppCompatActivity() {
@@ -26,8 +32,8 @@ class AddTodoActivity : AppCompatActivity() {
     private lateinit var buttonBack: ImageButton
     private lateinit var characterCountTextView: TextView
     private var todoItemToEdit: TodoItem? = null
-    private val viewModel:AddViewmodel by viewModels()
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private lateinit var viewModel:AddViewmodel
+            override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_add_todo)
@@ -35,6 +41,9 @@ class AddTodoActivity : AppCompatActivity() {
         characterCountTextView = findViewById(R.id.characterCountTextView)
         buttonAddTodo = findViewById(R.id.buttonAddTodo)
         buttonBack=findViewById(R.id.imageButton)
+                viewModel = ViewModelProvider(
+                    this,
+                    StdAddVMFactory(this.applicationContext as Application, DBInjector.dbContainer)                    )[AddViewmodel::class.java]
         if (intent.hasExtra("todo")) {
             todoItemToEdit = intent.getSerializableExtra("todo") as? TodoItem
             todoItemToEdit?.let {

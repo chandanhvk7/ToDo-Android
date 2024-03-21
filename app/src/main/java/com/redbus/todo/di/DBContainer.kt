@@ -1,15 +1,11 @@
-package com.redbus.todo.model
+package com.redbus.todo.di
 
 import android.content.Context
-import androidx.room.Database
 import androidx.room.Room
-import androidx.room.RoomDatabase
+import com.redbus.todo.data.TodoDatabase
+import com.redbus.todo.domain.repository.TodoRepository
 
-@Database(entities = [TodoItem::class], version = 1)
-abstract class TodoDatabase : RoomDatabase() {
-    abstract fun getTodoDao(): TodoDao
-
-    companion object {
+class DBContainer {
         @Volatile
         private var INSTANCE: TodoDatabase? = null
 
@@ -18,11 +14,14 @@ abstract class TodoDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     TodoDatabase::class.java,
-                    "todo_database"
+                    TodoDatabase.DATABASE_NAME
                 ).build()
                 INSTANCE = instance
                 instance
             }
         }
-    }
+    fun provideTodoRepository(database: TodoDatabase):TodoRepository=TodoRepository.getInstance(
+        database.getTodoDao()
+    )
 }
+

@@ -1,24 +1,26 @@
 package com.redbus.todo.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.redbus.todo.model.TodoDatabase
-import com.redbus.todo.model.TodoItem
-import com.redbus.todo.model.TodoRepository
+import com.redbus.todo.di.DBContainer
+import com.redbus.todo.domain.model.TodoItem
+import com.redbus.todo.domain.repository.TodoRepository
+import com.redbus.todo.domain.usecases.DeleteTodoUseCase
+import com.redbus.todo.domain.usecases.GetAllTodosUseCase
+import com.redbus.todo.domain.usecases.GetByIdUseCase
 import kotlinx.coroutines.launch
 
-class TodoViewModel(application: Application) : ViewModel() {
-    private val repository: TodoRepository
+class TodoViewModel(private val repository: TodoRepository,getall: GetAllTodosUseCase, val deleteTodoUseCase: DeleteTodoUseCase) : ViewModel() {
+
     val allTodo : LiveData<List<TodoItem>>
 
     init {
-        val dao = TodoDatabase.getDatabase(application).getTodoDao()
-        repository = TodoRepository(dao)
-        allTodo = repository.allTodoItems
+
+
+        allTodo = getall.execute()
     }
     fun insert(todoItem: TodoItem) {
         viewModelScope.launch {
@@ -33,16 +35,20 @@ class TodoViewModel(application: Application) : ViewModel() {
     }
     fun delete(todoItem: TodoItem) {
         viewModelScope.launch {
-            repository.delete(todoItem)
+            deleteTodoUseCase.execute(todoItem)
         }
     }
 
 }
 
 
-class StdVMFactory(val app: Application): ViewModelProvider.Factory{
+class StdVMFactory(val app: Application, val dbContainer: DBContainer): ViewModelProvider.Factory{
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return TodoViewModel(app) as T
+        val db = dbContainer.getDatabase(app)
+        val repository = dbContainer.provideTodoRepository(db)
+        val getall=GetAllTodosUseCase(repository)
+        val deleteTodoUseCase=DeleteTodoUseCase(repository)
+        return TodoViewModel(repository,getall,deleteTodoUseCase) as T
     }
 }

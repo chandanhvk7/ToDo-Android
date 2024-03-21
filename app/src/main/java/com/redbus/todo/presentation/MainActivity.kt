@@ -1,4 +1,4 @@
-package com.redbus.todo
+package com.redbus.todo.presentation
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DismissDirection
@@ -42,7 +43,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarResult.*
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
@@ -57,20 +57,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.ExperimentalUnitApi
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
-import androidx.wear.compose.material.FractionalThreshold
-import androidx.wear.compose.material.rememberSwipeableState
-import com.redbus.todo.model.TodoItem
+import com.redbus.todo.di.DBInjector
+import com.redbus.todo.domain.model.TodoItem
 import com.redbus.todo.ui.theme.ToDoTheme
 import com.redbus.todo.viewmodel.StdVMFactory
 import com.redbus.todo.viewmodel.TodoViewModel
@@ -78,7 +73,7 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: TodoViewModel by viewModels()
+    private lateinit var viewModel: TodoViewModel
     var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data = result.data?.getSerializableExtra("todo") as? TodoItem
@@ -99,9 +94,9 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val owner=LocalViewModelStoreOwner.current!!
-                    val viewModel = ViewModelProvider(
+                    viewModel = ViewModelProvider(
                         owner,
-StdVMFactory(LocalContext.current.applicationContext as Application)                    )[TodoViewModel::class.java]
+StdVMFactory(LocalContext.current.applicationContext as Application, DBInjector.dbContainer)                    )[TodoViewModel::class.java]
                     TodoListScreen(todoViewModel = viewModel,this,resultLauncher)
                 }
             }
@@ -146,8 +141,8 @@ fun TodoListScreen(todoViewModel: TodoViewModel,context: Context,resultLauncher:
                 SnackbarDuration.Short
             )
             when (snackResult) {
-                androidx.compose.material.SnackbarResult.Dismissed -> {}
-                androidx.compose.material.SnackbarResult.ActionPerformed -> {
+                SnackbarResult.Dismissed -> {}
+                SnackbarResult.ActionPerformed -> {
                     todoViewModel.insert(todoItem)
                     dismissState?.reset()
                 }
@@ -248,8 +243,8 @@ fun TodoListScreen(todoViewModel: TodoViewModel,context: Context,resultLauncher:
                                                 SnackbarDuration.Short
                                             )
                                             when (snackResult) {
-                                                androidx.compose.material.SnackbarResult.Dismissed -> {}
-                                                androidx.compose.material.SnackbarResult.ActionPerformed -> todoViewModel.insert(
+                                                SnackbarResult.Dismissed -> {}
+                                                SnackbarResult.ActionPerformed -> todoViewModel.insert(
                                                     deletedItem
                                                 )
                                             }
@@ -271,7 +266,7 @@ fun TodoListScreen(todoViewModel: TodoViewModel,context: Context,resultLauncher:
 
 
 @Composable
-fun TodoItemRow(todoItem: TodoItem,viewModel: TodoViewModel,onItemClick:(TodoItem)->Unit,onDeleteClick: (TodoItem) -> Unit ){
+fun TodoItemRow(todoItem: TodoItem, viewModel: TodoViewModel, onItemClick:(TodoItem)->Unit, onDeleteClick: (TodoItem) -> Unit ){
         Row(
             modifier = Modifier
                 .fillMaxWidth()
